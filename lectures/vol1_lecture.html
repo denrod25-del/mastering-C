@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>C Mastery — Volume I: Mastering Pointers</title>
+<meta name="description" content="An interactive lecture on C pointers: what a pointer is, variables and addresses, declaring and initializing pointers, the & and * operators, pointer-to-pointer, pointer arithmetic, NULL, and the three classic pointer bugs.">
+<link rel="canonical" href="https://denrod25-del.github.io/mastering-C/lectures/vol1_lecture.html">
+<meta name="theme-color" content="#f5f5f0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
@@ -11,25 +14,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hdr{padding:14px 22px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hdr-left{display:flex;align-items:center;gap:10px}
 .chip{font-size:11px;font-weight:700;letter-spacing:.08em;background:#f0f0ec;border:1px solid #ddd;border-radius:6px;padding:2px 8px;color:#666}
-.hdr h2{font-size:15px;font-weight:600;color:#222}
-.slide-count{font-size:12px;color:#aaa;white-space:nowrap}
-#diag{background:#f8f8f4;padding:20px;min-height:275px;display:flex;align-items:center;justify-content:center;transition:opacity .2s}
+.hdr h1{font-size:15px;font-weight:600;color:#222;line-height:1.3}
+.slide-count{font-size:12px;color:#666;white-space:nowrap}
+#diag{background:#f8f8f4;padding:20px;display:flex;align-items:center;justify-content:center;transition:opacity .2s}
+#diag svg{width:100%;height:auto;display:block}
 .narr-wrap{padding:14px 22px;border-top:1px solid #eee}
-.narr-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:6px}
+.narr-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b6b6b;margin-bottom:6px}
 #narr{font-size:14px;line-height:1.8;min-height:92px;color:#333}
 .prog-wrap{padding:0 22px 5px}
 .prog{height:3px;background:#ececec;border-radius:2px;cursor:pointer}
+.prog:focus-visible{outline:2px solid #2563eb;outline-offset:4px;border-radius:2px}
 .prog-fill{height:100%;background:#444;border-radius:2px;transition:width .2s}
-.ctrls{padding:11px 22px 16px;display:flex;align-items:center;justify-content:center;gap:12px}
-button{border:1px solid #e0e0e0;background:#fff;border-radius:9px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#333;display:flex;align-items:center;gap:5px;transition:background .12s;white-space:nowrap}
+.ctrls{padding:11px 22px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 12px}
+button{border:1px solid #e0e0e0;background:#fff;border-radius:9px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#333;transition:background .12s;white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:.35em}
 button:hover{background:#f5f5f0}
+button:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed;background:#fff}
 #playbtn{padding:8px 24px;font-size:14px;border-color:#ccc}
-.kbd{font-size:11px;color:#bbb;text-align:center;padding-bottom:10px}
+.kbd{font-size:11px;color:#6b6b6b;text-align:center;padding-bottom:10px}
 svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 @keyframes drawArr{from{stroke-dashoffset:320}to{stroke-dashoffset:0}}
 .da{stroke-dasharray:320;animation:drawArr .65s ease forwards}
 @keyframes popIn{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
 .pi{animation:popIn .4s ease forwards}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){
+  .da{animation:none;stroke-dashoffset:0}
+  .pi{animation:none}
+  #diag{transition:none}
+  #micbtn.aai-live{animation:none}
+}
 
 /* ── AssemblyAI Voice Input + Q&A ─────────────────────────────────────────── */
 #micbtn{
@@ -60,6 +74,11 @@ svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
   line-height:1.55;border-bottom:1px solid #21262d;font-style:italic;
 }
 #vp-transcript.aai-empty::before{content:'Say anything — end with ? to get an AI answer';color:#484f58;font-style:italic;}
+#vp-form{display:flex;gap:.5rem;padding:.6rem 1rem;border-bottom:1px solid #21262d;}
+#vp-input{flex:1;min-width:0;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:.5rem .6rem;font-size:.84rem;}
+#vp-input:focus-visible{outline:2px solid #58a6ff;outline-offset:1px;}
+#vp-form button{min-height:36px;padding:.4rem .9rem;font-size:.8rem;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#e6edf3;}
+#vp-form button:hover{background:#30363d;}
 #vp-answer{
   display:none;padding:.75rem 1rem;font-size:.84rem;color:#c9d1d9;
   line-height:1.65;max-height:260px;overflow-y:auto;
@@ -79,33 +98,53 @@ svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 </style>
 </head>
 <body>
-<div class="player">
+<noscript>
+  <div style="max-width:860px;margin:20px auto;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;border:1px solid #ddd;border-radius:14px">
+    <h1>C Mastery — Volume I: Mastering Pointers</h1>
+    <p>This lecture is an interactive, narrated player and needs JavaScript enabled to run. Its ten sections are:</p>
+    <ol>
+      <li>What is a pointer?</li>
+      <li>Variables occupy memory — different types, different sizes</li>
+      <li>Declaring a pointer — always initialize</li>
+      <li>The &amp; operator — taking the address of a variable</li>
+      <li>The * operator — reading through a pointer (dereferencing)</li>
+      <li>The * operator — writing through a pointer</li>
+      <li>Pointer to pointer — double indirection</li>
+      <li>Pointer arithmetic — scaled by the type's size</li>
+      <li>NULL — the safe zero address</li>
+      <li>The three pointer traps</li>
+    </ol>
+    <p>Enable JavaScript and reload this page to view the full narrated lecture.</p>
+  </div>
+</noscript>
+<main class="player">
   <div class="hdr">
     <div class="hdr-left">
       <span class="chip">VOL I</span>
-      <h2 id="stitle">Mastering Pointers in C</h2>
+      <h1 id="stitle">Mastering Pointers in C</h1>
     </div>
     <span class="slide-count" id="scount"></span>
   </div>
   <div id="diag"></div>
+  <p id="live-announce" class="sr-only" aria-live="polite"></p>
   <div class="narr-wrap">
-    <div class="narr-label">Narration</div>
-    <p id="narr"></p>
+    <div class="narr-label" id="narr-label">Narration</div>
+    <p id="narr" aria-labelledby="narr-label"></p>
   </div>
   <div class="prog-wrap">
-    <div class="prog" id="pbar" onclick="pgClick(event)">
+    <div class="prog" id="pbar" tabindex="0" role="slider" aria-label="Lecture progress" aria-valuemin="1" aria-valuenow="1" aria-valuemax="10" onclick="pgClick(event)">
       <div class="prog-fill" id="pfill" style="width:0%"></div>
     </div>
   </div>
   <div class="ctrls">
-    <button onclick="goPrev()">&#9664; Prev</button>
+    <button id="prevbtn" onclick="goPrev()">&#9664; Prev</button>
     <button id="playbtn" onclick="toggle()">&#9654; Play</button>
-    <button onclick="goNext()">Next &#9654;</button>
+    <button id="nextbtn" onclick="goNext()">Next &#9654;</button>
     <button id="ttsbtn" onclick="ttsToggle()" title="Read narration aloud">&#128263; Voice Off</button>
     <button id="micbtn" onclick="_micToggle()" title="Voice input &amp; Q&amp;A">&#127908; Ask</button>
   </div>
-  <div class="kbd">Space&nbsp;=&nbsp;play/pause &nbsp;·&nbsp; &larr;&rarr;&nbsp;=&nbsp;step &nbsp;·&nbsp; click progress bar to jump &nbsp;·&nbsp; V&nbsp;=&nbsp;voice</div>
-</div>
+  <div class="kbd">Space&nbsp;=&nbsp;play/pause &nbsp;·&nbsp; &larr;&rarr;&nbsp;=&nbsp;step &nbsp;·&nbsp; click or focus + arrow keys on progress bar to jump &nbsp;·&nbsp; V&nbsp;=&nbsp;voice</div>
+</main>
 
 <script>
 // ── SVG marker ──────────────────────────────────────────────────────────────
@@ -406,6 +445,12 @@ window.addEventListener('beforeunload', ttsStop);
 // ── Playback engine ──────────────────────────────────────────────────────────
 let vi=0, playing=false, ticker=null, ctick=null;
 
+function updateNav() {
+  const prevBtn = document.getElementById('prevbtn'), nextBtn = document.getElementById('nextbtn');
+  prevBtn.disabled = (vi === 0); prevBtn.setAttribute('aria-disabled', String(vi === 0));
+  nextBtn.disabled = (vi === SLIDES.length-1); nextBtn.setAttribute('aria-disabled', String(vi === SLIDES.length-1));
+}
+
 function goTo(n) {
   vi = Math.max(0, Math.min(n, SLIDES.length-1));
   const s = SLIDES[vi];
@@ -414,8 +459,16 @@ function goTo(n) {
   const d = document.getElementById('diag');
   d.style.opacity = '0';
   d.innerHTML = s.svg;
+  const svgEl = d.querySelector('svg');
+  if (svgEl) { svgEl.setAttribute('role', 'img'); svgEl.setAttribute('aria-label', s.title + ' diagram'); }
   setTimeout(() => d.style.opacity = '1', 30);
   document.getElementById('pfill').style.width = (vi / (SLIDES.length-1) * 100) + '%';
+  const bar = document.getElementById('pbar');
+  bar.setAttribute('aria-valuemax', String(SLIDES.length));
+  bar.setAttribute('aria-valuenow', String(vi+1));
+  bar.setAttribute('aria-valuetext', (vi+1) + ' of ' + SLIDES.length + ': ' + s.title);
+  updateNav();
+  document.getElementById('live-announce').textContent = s.title;
   clearInterval(ctick);
   let pos = 0, full = s.narration;
   document.getElementById('narr').textContent = '';
@@ -457,8 +510,8 @@ function pause() {
   document.getElementById('playbtn').textContent = '▶ Play';
 }
 function toggle() { playing ? pause() : play(); }
-function goNext() { clearTimeout(ticker); goTo(vi+1); if (playing) play(); }
-function goPrev() { clearTimeout(ticker); goTo(vi-1); if (playing) play(); }
+function goNext() { if (vi >= SLIDES.length-1) return; clearTimeout(ticker); goTo(vi+1); if (playing) play(); }
+function goPrev() { if (vi <= 0) return; clearTimeout(ticker); goTo(vi-1); if (playing) play(); }
 function pgClick(e) {
   const r = document.getElementById('pbar').getBoundingClientRect();
   clearTimeout(ticker);
@@ -466,6 +519,7 @@ function pgClick(e) {
   if (playing) play();
 }
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('voice-panel').classList.contains('aai-open')) { _vpClose(); return; }
   if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
   if (e.key === ' ') { e.preventDefault(); toggle(); }
   else if (e.key === 'ArrowRight') goNext();
@@ -476,42 +530,64 @@ document.addEventListener('keydown', e => {
 goTo(0);
 </script>
 
-<div id="voice-panel">
+<div id="voice-panel" role="region" aria-labelledby="vp-title">
   <div id="vp-bar">
-    <span id="vp-status">Ready</span>
-    <button id="vp-close" onclick="_vpClose()" aria-label="Close">&#x2715;</button>
+    <span id="vp-title" class="sr-only">Voice input and Q&amp;A</span>
+    <span id="vp-status" aria-live="polite">Ready</span>
+    <button id="vp-close" onclick="_vpClose()" aria-label="Close voice panel">&#x2715;</button>
   </div>
-  <div id="vp-transcript" class="aai-empty"></div>
-  <div id="vp-answer"></div>
-  <div id="vp-footer">Powered by AssemblyAI &middot; universal-3-5-pro</div>
+  <form id="vp-form">
+    <label for="vp-input" class="sr-only">Type a question about this lecture</label>
+    <input id="vp-input" type="text" placeholder="Or type a question and press Enter…" autocomplete="off">
+    <button type="submit">Ask</button>
+  </form>
+  <div id="vp-transcript" class="aai-empty" aria-live="polite"></div>
+  <div id="vp-answer" aria-live="polite"></div>
+  <div id="vp-footer">Mic audio streams live to AssemblyAI only while this panel is open, for transcription and Q&amp;A &middot; universal-3-5-pro</div>
 </div>
 <script>
 /* ── AssemblyAI Voice Input + Q&A ────────────────────────────────────────── */
+/* Set by the deploy step in README.md ("find-replace REPLACE_WITH_VERCEL_URL"). */
 const _AAI='https://the-c.vercel.app';
+const _aaiConfigured=()=>!!_AAI&&_AAI.indexOf('REPLACE_WITH')===-1;
 const _TERMS=['pointer','malloc','undefined behaviour','mutex','deadlock','epoll',
   'mmap','fork','syscall','struct','volatile','restrict','pthread','semaphore',
   'spinlock','realloc','calloc','free list','stack frame','heap internals'];
 /* AudioWorklet: capture Float32 mic audio → Int16 PCM at 16 kHz */
 const _WL=`class P extends AudioWorkletProcessor{process(i){const c=i[0]?.[0];if(c){const b=new Int16Array(c.length);for(let j=0;j<c.length;j++){const s=Math.max(-1,Math.min(1,c[j]));b[j]=s<0?s*0x8000:s*0x7FFF;}this.port.postMessage(b.buffer,[b.buffer]);}return true;}}registerProcessor('aai-pcm',P);`;
 
-let _ws=null,_ctx=null,_mic=null,_node=null,_buf=[],_on=false;
+let _ws=null,_ctx=null,_mic=null,_node=null,_buf=[],_on=false,_connecting=false,_asking=false;
 
 const _$=id=>document.getElementById(id);
 const _status=(t,live)=>{const e=_$('vp-status');if(e){e.textContent=t;e.className=live?'aai-live':'';}};
 const _tx=t=>{const e=_$('vp-transcript');if(!e)return;e.textContent=t;e.className=t?'':'aai-empty';};
 const _ans=h=>{const e=_$('vp-answer');if(!e)return;e.innerHTML=h;e.className=h?'aai-show':'';};
 const _open=()=>_$('voice-panel')?.classList.add('aai-open');
-function _vpClose(){_$('voice-panel')?.classList.remove('aai-open');if(_on)_stop();}
+function _vpClose(){_$('voice-panel')?.classList.remove('aai-open');if(_on)_stop();_$('micbtn')?.focus();}
+
+function _micSupported(){
+  return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.AudioContext&&window.AudioWorklet&&window.WebSocket);
+}
 
 async function _start(){
-  if(_on)return;
-  if(_AAI==='https://the-c.vercel.app'){
-    _open();_status('Backend not configured — see setup guide');return;
+  if(_on||_connecting)return;
+  if(!_aaiConfigured()){
+    _open();_status('Backend not configured — see README setup guide');return;
   }
+  if(!_micSupported()){
+    _open();_status('Voice input isn’t supported in this browser — try typing a question instead');return;
+  }
+  if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
+    _open();_status('Voice input requires HTTPS — try typing a question instead');return;
+  }
+  _connecting=true;
   _open();_status('Connecting\u2026');_tx('');_ans('');
   try{
     /* 1. Mint short-lived token (API key stays on server) */
-    const tr=await fetch(_AAI+'/api/token');
+    const tokCtl=new AbortController();
+    const tokTimer=setTimeout(()=>tokCtl.abort(),10000);
+    const tr=await fetch(_AAI+'/api/token',{signal:tokCtl.signal});
+    clearTimeout(tokTimer);
     if(!tr.ok)throw new Error('Token failed ('+tr.status+')');
     const{token}=await tr.json();
     /* 2. Open WebSocket using token — no API key in browser */
@@ -544,8 +620,12 @@ async function _start(){
         _ws.send(new Int16Array(_buf.splice(0,3200)).buffer);
     };
     _ctx.createMediaStreamSource(_mic).connect(_node);
-    _on=true;_btn();_status('Listening',true);
-  }catch(err){_status('Error: '+err.message);_clean();}
+    _on=true;_connecting=false;_btn();_status('Listening',true);
+  }catch(err){
+    _connecting=false;
+    const msg=err.name==='AbortError'?'Token request timed out':err.name==='NotAllowedError'?'Microphone permission denied':err.message;
+    _status('Error: '+msg);_clean();
+  }
 }
 
 function _stop(){
@@ -553,34 +633,53 @@ function _stop(){
   if(_ws?.readyState===1){_ws.send(JSON.stringify({type:'Terminate'}));_ws.close();}
   _clean();_status('Stopped');
 }
-function _clean(){_mic?.getTracks().forEach(t=>t.stop());_ctx?.close();_ws=_ctx=_mic=_node=null;_buf=[];_on=false;_btn();}
+function _clean(){_mic?.getTracks().forEach(t=>t.stop());_ctx?.close();_ws=_ctx=_mic=_node=null;_buf=[];_on=false;_connecting=false;_btn();}
 function _btn(){const b=_$('micbtn');if(!b)return;b.textContent=_on?'\u23F9 Stop':'\uD83C\uDF99 Ask';b.className=_on?'aai-live':'';}
-function _micToggle(){_on?_stop():_start();}
+function _micToggle(){if(_connecting)return;_on?_stop():_start();}
 window.addEventListener('beforeunload',()=>{if(_ws?.readyState===1)_ws.send(JSON.stringify({type:'Terminate'}));});
 
 async function _ask(q){
-  _status('Answering\u2026');_ans('<em style="color:#8b949e">Thinking\u2026</em>');
+  if(_asking)return;
+  if(!_aaiConfigured()){
+    _open();_status('Backend not configured — see README setup guide');return;
+  }
+  _asking=true;
+  _open();_status('Answering\u2026');_ans('<em style="color:#8b949e">Thinking\u2026</em>');
+  const ctl=new AbortController();
+  const timer=setTimeout(()=>ctl.abort(),20000);
   try{
     const r=await fetch(_AAI+'/api/qa',{
       method:'POST',
       headers:{'content-type':'application/json'},
       body:JSON.stringify({question:q,volume:document.title}),
+      signal:ctl.signal,
     });
     if(!r.ok)throw new Error('Q&A failed ('+r.status+')');
     const{answer}=await r.json();
-    /* Minimal markdown: fenced code blocks + inline code */
+    /* Minimal markdown: fenced code blocks + inline code. Escaped first, so this cannot inject HTML. */
     const h=answer
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
       .replace(/`([^`]+)`/g,'<code>$1</code>')
       .replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
-    _ans('<p>'+h+'</p>');
+    _ans('<p>'+h+'</p><p style="color:#8b949e;font-size:.75em">AI-generated — verify compiler/platform-specific details.</p>');
     _status(_on?'Listening':'Ready',_on);
   }catch(err){
-    _ans('<em style="color:#f85149">'+err.message+'</em>');
+    const msg=err.name==='AbortError'?'Request timed out — try again':err.message;
+    _ans('<em style="color:#f85149">'+msg+'</em>');
     _status(_on?'Listening':'Ready',_on);
+  }finally{
+    clearTimeout(timer);_asking=false;
   }
 }
+document.getElementById('vp-form')?.addEventListener('submit',e=>{
+  e.preventDefault();
+  const input=document.getElementById('vp-input');
+  const v=input.value.trim();
+  if(!v)return;
+  input.value='';
+  _ask(v);
+});
 
 </script>
 </body>
