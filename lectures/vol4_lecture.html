@@ -207,7 +207,7 @@ gt(0);
 </div>
 <script>
 /* ── AssemblyAI Voice Input + Q&A ────────────────────────────────────────── */
-const _AAI='REPLACE_WITH_VERCEL_URL';
+const _AAI='https://the-r4snv8rq4-bsymbolic.vercel.app';
 const _TERMS=['pointer','malloc','undefined behaviour','mutex','deadlock','epoll',
   'mmap','fork','syscall','struct','volatile','restrict','pthread','semaphore',
   'spinlock','realloc','calloc','free list','stack frame','heap internals'];
@@ -225,7 +225,7 @@ function _vpClose(){_$('voice-panel')?.classList.remove('aai-open');if(_on)_stop
 
 async function _start(){
   if(_on)return;
-  if(_AAI==='REPLACE_WITH_VERCEL_URL'){
+  if(_AAI==='https://the-r4snv8rq4-bsymbolic.vercel.app'){
     _open();_status('Backend not configured — see setup guide');return;
   }
   _open();_status('Connecting\u2026');_tx('');_ans('');
