@@ -13,3 +13,17 @@ Every lecture has a **🎤 Ask** button in the control bar.
 3. Deploy — Vercel auto-detects `api/token.js` and `api/qa.js`
 4. Copy your Vercel URL and find-replace `REPLACE_WITH_VERCEL_URL` in all lectures
 5. Push — voice Q&A is live
+
+Until step 4 is done, the panel shows "Backend not configured" and the control
+bar also offers a typed-question fallback that doesn't need a microphone.
+
+### Tests
+
+A small Playwright suite covers the Volume IX player (playback state, keyboard
+shortcuts, progress-bar accessibility, the Ask panel's safe-error path, and
+mobile overflow):
+
+```
+npm install
+npm test
+```
