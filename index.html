@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastering C — Interactive Systems Programming Course</title>
+<meta name="description" content="10 interactive lectures, 100 analogy graphics, 12 reference volumes. Free C systems-programming curriculum built from ISO/IEC 9899 and POSIX.1-2017.">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--border2:#21262d;--text:#e6edf3;--sub:#8b949e;--muted:#484f58;--blue:#58a6ff;--green:#3fb950;--orange:#f0883e;--purple:#bc8cff;--yellow:#e3b341;--red:#f85149;--radius:6px;--radius-lg:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6}
+a{color:inherit;text-decoration:none}
+code,kbd{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
+
+/* ── HERO ── */
+.hero{border-bottom:1px solid var(--border);padding:5rem 2rem 4rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,#58a6ff14,transparent);pointer-events:none}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--sub);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:.25rem .9rem;margin-bottom:1.6rem;font-family:monospace}
+.hero-eyebrow span{color:var(--green)}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.5px;line-height:1.2;margin-bottom:.8rem}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero p{color:var(--sub);font-size:1.05rem;max-width:520px;margin:0 auto 2rem}
+.hero-stats{display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;margin-bottom:2.4rem}
+.stat{text-align:center}
+.stat .n{font-size:1.8rem;font-weight:700;display:block;line-height:1}
+.stat .l{font-size:.75rem;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+.hero-actions{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.2rem;border-radius:var(--radius);font-size:.875rem;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s}
+.btn-primary{background:#238636;border-color:#2ea043;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.btn-secondary:hover{background:var(--surface);border-color:var(--sub)}
+
+/* ── TERMINAL ── */
+.term-wrap{max-width:560px;margin:2.5rem auto 0;background:#010409;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;text-align:left;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.term-bar{background:var(--surface);border-bottom:1px solid var(--border2);padding:.55rem 1rem;display:flex;align-items:center;gap:.5rem}
+.term-dot{width:12px;height:12px;border-radius:50%}
+.term-dot.r{background:#ff5f56}.term-dot.y{background:#ffbd2e}.term-dot.g{background:#27c93f}
+.term-title{color:var(--sub);font-size:.75rem;margin-left:.4rem;font-family:monospace}
+.term-body{padding:1.2rem 1.4rem;font-family:monospace;font-size:.82rem;line-height:1.9}
+.t-prompt{color:var(--green)}.t-cmd{color:var(--text)}.t-path{color:var(--blue)}.t-comment{color:var(--muted)}.t-out{color:var(--sub)}
+.t-cursor{display:inline-block;width:8px;height:14px;background:var(--blue);vertical-align:middle;animation:blink 1.1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── FEATURE CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1.5rem}
+.chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--sub);background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:.2rem .7rem}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:50;background:rgba(13,17,23,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;overflow-x:auto}
+.nav-brand{font-weight:600;font-size:.9rem;color:var(--text);padding:.8rem 1.2rem .8rem 0;border-right:1px solid var(--border);margin-right:.5rem;white-space:nowrap;flex-shrink:0}
+.nav-brand code{color:var(--blue)}
+nav a.tab{display:flex;align-items:center;gap:.4rem;padding:.8rem 1rem;font-size:.875rem;color:var(--sub);border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+nav a.tab:hover{color:var(--text)}
+nav a.tab.active{color:var(--text);border-bottom-color:var(--orange)}
+
+/* ── LAYOUT ── */
+main{max-width:1060px;margin:0 auto;padding:0 1.5rem 6rem}
+section{padding-top:3.5rem}
+.sec-header{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border2)}
+.sec-header h2{font-size:1rem;font-weight:600;color:var(--text)}
+.sec-header .count{font-size:.75rem;color:var(--sub);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:.1rem .55rem}
+
+/* ── LECTURE CARDS ── */
+.lec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1px;background:var(--border2);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden}
+.lec-card{background:var(--surface);padding:1.1rem 1.3rem;display:flex;flex-direction:column;gap:.4rem;transition:background .15s;position:relative}
+.lec-card:hover{background:var(--surface2)}
+.lec-card:hover .lec-open{opacity:1}
+.lec-num{font-family:monospace;font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.lec-num::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--vol-color,var(--blue));flex-shrink:0}
+.lec-card h3{font-size:.9rem;font-weight:600;color:var(--text)}
+.lec-card p{font-size:.8rem;color:var(--sub);line-height:1.5;flex:1}
+.lec-open{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--blue);margin-top:.4rem;opacity:0;transition:opacity .15s}
+.v1{--vol-color:#58a6ff}.v2{--vol-color:#3fb950}.v3{--vol-color:#f0883e}.v4{--vol-color:#bc8cff}.v5{--vol-color:#f85149}.v6{--vol-color:#e3b341}.v7{--vol-color:#39d353}.v8{--vol-color:#db6d28}.v9{--vol-color:#58a6ff}.v10{--vol-color:#bc8cff}
+
+/* ── DOCS ── */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.6rem}
+.doc-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:.8rem 1rem;display:flex;align-items:center;gap:.8rem;transition:border-color .15s,background .15s}
+.doc-card:hover{border-color:var(--border);background:var(--surface2)}
+.doc-icon{font-size:1.4rem;flex-shrink:0}
+.doc-meta{min-width:0;flex:1}
+.doc-meta strong{display:block;font-size:.85rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta span{font-size:.75rem;color:var(--sub)}
+.doc-dl{flex-shrink:0;display:inline-flex;align-items:center;gap:.25rem;font-size:.75rem;color:var(--blue);border:1px solid var(--border2);border-radius:var(--radius);padding:.25rem .6rem;transition:border-color .15s}
+.doc-card:hover .doc-dl{border-color:var(--blue)}
+.doc-card.special .doc-meta strong{color:var(--yellow)}
+
+/* ── GRAPHICS ── */
+.vol-tabs{display:flex;gap:2px;border:1px solid var(--border2);border-radius:var(--radius);overflow-x:auto;background:var(--surface);padding:3px;margin-bottom:1rem;flex-wrap:wrap}
+.vtab{padding:.3rem .75rem;font-size:.78rem;cursor:pointer;border:none;background:transparent;color:var(--sub);border-radius:4px;transition:.15s;white-space:nowrap}
+.vtab:hover{color:var(--text);background:var(--surface2)}
+.vtab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.png-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.6rem}
+.png-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s}
+.png-card:hover{border-color:var(--border);transform:translateY(-2px)}
+.png-card img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+.png-card .png-lbl{font-size:.7rem;color:var(--sub);padding:.35rem .5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:monospace;background:var(--surface2);border-top:1px solid var(--border2)}
+
+/* ── LIGHTBOX ── */
+#lb{display:none;position:fixed;inset:0;background:rgba(1,4,9,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem}
+#lb.open{display:flex}
+#lb img{max-width:min(95vw,900px);max-height:75vh;border-radius:var(--radius-lg);border:1px solid var(--border);box-shadow:0 24px 64px rgba(0,0,0,.8)}
+.lb-bar{display:flex;align-items:center;gap:.6rem}
+.lb-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:var(--radius);cursor:pointer;font-size:.85rem;transition:.15s}
+.lb-btn:hover{background:var(--surface2);border-color:var(--sub)}
+.lb-lbl{color:var(--sub);font-size:.82rem;font-family:monospace;min-width:150px;text-align:center}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border2);padding:2rem 1.5rem;text-align:center;color:var(--muted);font-size:.8rem}
+footer a{color:var(--sub)}
+footer a:hover{color:var(--blue)}
+
+@media(max-width:600px){
+  .hero{padding:3rem 1.2rem 2.5rem}
+  .hero-stats{gap:1.5rem}
+  .hero-actions{flex-direction:column;align-items:center}
+  .nav-brand{display:none}
+  main{padding:0 1rem 4rem}
+  .png-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-eyebrow"><span>●</span> Open source · Free forever</div>
+  <h1>Mastering <em>C</em></h1>
+  <p>A complete systems-programming curriculum built from ISO/IEC 9899, POSIX.1-2017, and the SysV AMD64 ABI.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="n">10</span><span class="l">Lectures</span></div>
+    <div class="stat"><span class="n">100</span><span class="l">Graphics</span></div>
+    <div class="stat"><span class="n">12</span><span class="l">Reference Volumes</span></div>
+    <div class="stat"><span class="n">0</span><span class="l">Dependencies</span></div>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="#lectures">▶ Open a Lecture</a>
+    <a class="btn btn-secondary" href="https://github.com/denrod25-del/mastering-C" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+  <div class="term-wrap">
+    <div class="term-bar">
+      <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">bash — mastering-C</span>
+    </div>
+    <div class="term-body">
+      <div><span class="t-prompt">$</span> <span class="t-cmd">git clone </span><span class="t-path">https://github.com/denrod25-del/mastering-C</span></div>
+      <div class="t-out">Cloning into 'mastering-C'... done.</div>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">open </span><span class="t-path">lectures/vol1_lecture.html</span></div>
+      <div class="t-out"><span style="color:var(--green)">✓</span> No build step. No server. No npm install.</div>
+      <div><span class="t-prompt">$</span> <span class="t-comment"># Press V for voice narration · 🎤 Ask for voice Q&amp;A</span></div>
+      <div><span class="t-prompt">$</span> <span class="t-cursor"></span></div>
+    </div>
+  </div>
+  <div class="chips">
+    <span class="chip"><span class="dot"></span>Works offline</span>
+    <span class="chip"><span class="dot" style="background:var(--blue)"></span>🔊 Voice narration (V)</span>
+    <span class="chip"><span class="dot" style="background:var(--purple)"></span>🎤 Voice Q&amp;A (Ask)</span>
+    <span class="chip"><span class="dot" style="background:var(--orange)"></span>Standards-first (C11/C23)</span>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-brand"><code>mastering-C</code></div>
+  <a class="tab active" href="#lectures">📄 Lectures</a>
+  <a class="tab" href="#docs">📚 Volumes</a>
+  <a class="tab" href="#graphics">🖼 Graphics</a>
+</nav>
+
+<main>
+
+<section id="lectures">
+  <div class="sec-header"><h2>Interactive Lectures</h2><span class="count">10</span></div>
+  <div class="lec-grid">
+    <a class="lec-card v1" href="lectures/vol1_lecture.html">
+      <div class="lec-num">Vol 01 · Pointers</div><h3>Pointers</h3>
+      <p>Variables in memory, <code>&amp;</code>/<code>*</code>, arithmetic, NULL and dangling pointers.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v2" href="lectures/vol2_lecture.html">
+      <div class="lec-num">Vol 02 · Pointers Deep Dive</div><h3>Pointers Deep Dive</h3>
+      <p>Virtual address space, stack frames, spiral rule, strict aliasing, AMD64 ABI.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v3" href="lectures/vol3_lecture.html">
+      <div class="lec-num">Vol 03 · Types &amp; Data</div><h3>Types &amp; Data</h3>
+      <p>Two's complement, IEEE 754, integer promotion, endianness, struct padding, unions.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v4" href="lectures/vol4_lecture.html">
+      <div class="lec-num">Vol 04 · Preprocessor</div><h3>Preprocessor &amp; Build</h3>
+      <p>Compilation phases, macros, X-macros, linkage, static/dynamic libs, Make.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v5" href="lectures/vol5_lecture.html">
+      <div class="lec-num">Vol 05 · Undefined Behaviour</div><h3>Undefined Behaviour</h3>
+      <p>UB taxonomy, compiler exploitation, sanitizers, defence-in-depth strategy.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v6" href="lectures/vol6_lecture.html">
+      <div class="lec-num">Vol 06 · Standard Library</div><h3>Standard Library</h3>
+      <p>All 31 standard headers — safe vs unsafe functions, errno, stdarg, atomics.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v7" href="lectures/vol7_lecture.html">
+      <div class="lec-num">Vol 07 · Systems</div><h3>Systems Programming</h3>
+      <p>syscall ABI, file descriptors, fork/exec, pipes, signals, sockets, epoll, mmap.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v8" href="lectures/vol8_lecture.html">
+      <div class="lec-num">Vol 08 · Concurrency</div><h3>Concurrency</h3>
+      <p>Data races, mutexes, condvars, C11 memory model, six orderings, CAS, ABA.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v9" href="lectures/vol9_lecture.html">
+      <div class="lec-num">Vol 09 · Toolchain</div><h3>Toolchain &amp; Debugging</h3>
+      <p>GDB, core dumps, Valgrind, ASan/UBSan, strace, perf, flame graphs, OpenOCD.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+    <a class="lec-card v10" href="lectures/vol10_lecture.html">
+      <div class="lec-num">Vol 10 · Data Structures</div><h3>Data Structures</h3>
+      <p>Dynamic array, intrusive lists, SPSC ring buffer, Robin Hood hash, AVL, heap, trie.</p>
+      <span class="lec-open">▶ Open lecture →</span>
+    </a>
+  </div>
+  <div class="chips" style="justify-content:flex-start;margin-top:.8rem">
+    <span class="chip"><span class="dot"></span>Space — play/pause</span>
+    <span class="chip"><span class="dot"></span>← → — step slides</span>
+    <span class="chip"><span class="dot" style="background:var(--blue)"></span>V — voice narration</span>
+    <span class="chip"><span class="dot" style="background:var(--purple)"></span>🎤 Ask — voice Q&amp;A</span>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="sec-header"><h2>Reference Volumes</h2><span class="count">12</span></div>
+  <div class="doc-grid">
+    <a class="doc-card" href="docs/Mastering_Pointers_in_C.docx" download>
+      <span class="doc-icon">📘</span>
+      <div class="doc-meta"><strong>Mastering Pointers in C</strong><span>Vol 1 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/Mastering_Pointers_Vol2_Deep_Dive.docx" download>
+      <span class="doc-icon">📘</span>
+      <div class="doc-meta"><strong>Pointers Deep Dive</strong><span>Vol 2 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol3_Types.docx" download>
+      <span class="doc-icon">📗</span>
+      <div class="doc-meta"><strong>Types &amp; Data</strong><span>Vol 3 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol4_Preprocessor.docx" download>
+      <span class="doc-icon">📗</span>
+      <div class="doc-meta"><strong>Preprocessor &amp; Build</strong><span>Vol 4 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol5_UB.docx" download>
+      <span class="doc-icon">📙</span>
+      <div class="doc-meta"><strong>Undefined Behaviour</strong><span>Vol 5 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol6_StdLib.docx" download>
+      <span class="doc-icon">📙</span>
+      <div class="doc-meta"><strong>Standard Library</strong><span>Vol 6 — all 31 headers</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol7_Systems.docx" download>
+      <span class="doc-icon">📕</span>
+      <div class="doc-meta"><strong>Systems Programming</strong><span>Vol 7 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol8_Concurrency.docx" download>
+      <span class="doc-icon">📕</span>
+      <div class="doc-meta"><strong>Concurrency</strong><span>Vol 8 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol9_Toolchain.docx" download>
+      <span class="doc-icon">📓</span>
+      <div class="doc-meta"><strong>Toolchain &amp; Debugging</strong><span>Vol 9 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card" href="docs/CMastery_Vol10_DataStructures.docx" download>
+      <span class="doc-icon">📓</span>
+      <div class="doc-meta"><strong>Data Structures</strong><span>Vol 10 reference</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card special" href="docs/CMastery_MasterReference.docx" download>
+      <span class="doc-icon">📚</span>
+      <div class="doc-meta"><strong>Master Reference</strong><span>All 10 volumes combined</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+    <a class="doc-card special" href="docs/CMastery_Capstone_Projects.docx" download>
+      <span class="doc-icon">🏗</span>
+      <div class="doc-meta"><strong>Capstone Projects</strong><span>Project briefs &amp; specs</span></div>
+      <span class="doc-dl">⬇ .docx</span>
+    </a>
+  </div>
+</section>
+
+<section id="graphics">
+  <div class="sec-header"><h2>Analogy Graphics</h2><span class="count">100 cards · click to enlarge</span></div>
+  <div class="vol-tabs">
+    <button class="vtab active" onclick="showVol(0,this)">Vol 1 — Pointers</button>
+    <button class="vtab" onclick="showVol(1,this)">Vol 2 — Pointers Deep</button>
+    <button class="vtab" onclick="showVol(2,this)">Vol 3 — Types</button>
+    <button class="vtab" onclick="showVol(3,this)">Vol 4 — Preprocessor</button>
+    <button class="vtab" onclick="showVol(4,this)">Vol 5 — UB</button>
+    <button class="vtab" onclick="showVol(5,this)">Vol 6 — Stdlib</button>
+    <button class="vtab" onclick="showVol(6,this)">Vol 7 — Systems</button>
+    <button class="vtab" onclick="showVol(7,this)">Vol 8 — Concurrency</button>
+    <button class="vtab" onclick="showVol(8,this)">Vol 9 — Toolchain</button>
+    <button class="vtab" onclick="showVol(9,this)">Vol 10 — Data Structures</button>
+  </div>
+  <div id="gallery" class="png-grid"></div>
+</section>
+
+</main>
+
+<div id="lb">
+  <img id="lb-img" src="" alt="">
+  <div class="lb-bar">
+    <button class="lb-btn" onclick="lbNav(-1)">◀ Prev</button>
+    <span class="lb-lbl" id="lb-lbl"></span>
+    <button class="lb-btn" onclick="lbNav(1)">Next ▶</button>
+    <button class="lb-btn" onclick="lbClose()">✕</button>
+  </div>
+</div>
+
+<footer>
+  Built from <a href="https://www.iso-9899.info/wiki/The_Standard">ISO/IEC 9899</a>,
+  <a href="https://pubs.opengroup.org/onlinepubs/9699919799/">POSIX.1-2017</a>, and the SysV AMD64 ABI ·
+  <a href="https://github.com/denrod25-del/mastering-C">GitHub ↗</a>
+</footer>
+
+<script>
+const VOLS=[
+  {dir:'graphics/vol01_pointers',files:['pointer_01_variable_is_toybox.png','pointer_02_every_box_has_address.png','pointer_03_two_ways.png','pointer_04_pointer_is_note.png','pointer_05_dereferencing.png','pointer_06_writing_through.png','pointer_07_many_notes_one_box.png','pointer_08_everyone_sees_change.png','pointer_09_null_pointer.png','pointer_10_dangling_pointer.png']},
+  {dir:'graphics/vol02_pointers_deep',files:['vol2_01_virtual_address_space.png','vol2_02_stack_vs_heap.png','vol2_03_stack_frames.png','vol2_04_spiral_rule.png','vol2_05_pointer_arithmetic.png','vol2_06_strict_aliasing.png','vol2_07_amd64_abi.png','vol2_08_heap_internals.png','vol2_09_alignment_padding.png','vol2_10_ub_optimization.png']},
+  {dir:'graphics/vol03_types',files:['vol3_01_integer_types.png','vol3_02_twos_complement.png','vol3_03_integer_promotion.png','vol3_04_signed_unsigned_traps.png','vol3_05_endianness.png','vol3_06_ieee754.png','vol3_07_bit_manipulation.png','vol3_08_struct_bitfields.png','vol3_09_unions.png','vol3_10_const_volatile_restrict.png']},
+  {dir:'graphics/vol04_preprocessor',files:['vol4_01_compilation_phases.png','vol4_02_preprocessor.png','vol4_03_macro_dangers.png','vol4_04_header_guards.png','vol4_05_xmacros.png','vol4_06_translation_units.png','vol4_07_linker_symbols.png','vol4_08_static_dynamic_libs.png','vol4_09_dlopen.png','vol4_10_make_builds.png']},
+  {dir:'graphics/vol05_undefined_behaviour',files:['vol5_01_what_is_ub.png','vol5_02_arithmetic_ub.png','vol5_03_pointer_ub.png','vol5_04_strict_aliasing_ub.png','vol5_05_sequence_point_ub.png','vol5_06_compiler_exploitation.png','vol5_07_ub_time_bomb.png','vol5_08_reading_assembly.png','vol5_09_sanitizers.png','vol5_10_defence_in_depth.png']},
+  {dir:'graphics/vol06_stdlib',files:['vol6_01_stdio.png','vol6_02_string_h.png','vol6_03_stdlib_h.png','vol6_04_stdint_limits.png','vol6_05_ctype_h.png','vol6_06_errno_h.png','vol6_07_stdarg_h.png','vol6_08_signal_setjmp.png','vol6_09_time_h.png','vol6_10_stdatomic_threads.png']},
+  {dir:'graphics/vol07_systems',files:['vol7_01_syscall_interface.png','vol7_02_file_descriptors.png','vol7_03_address_space.png','vol7_04_fork_exec_wait.png','vol7_05_pipes.png','vol7_06_signals.png','vol7_07_sockets.png','vol7_08_epoll.png','vol7_09_mmap.png','vol7_10_mmio_baremetal.png']},
+  {dir:'graphics/vol08_concurrency',files:['vol8_01_data_races.png','vol8_02_mutexes.png','vol8_03_condition_vars.png','vol8_04_semaphores_rwlocks.png','vol8_05_memory_model.png','vol8_06_memory_orderings.png','vol8_07_cas_lockfree.png','vol8_08_aba_problem.png','vol8_09_deadlock.png','vol8_10_tsan_tls_pthreads.png']},
+  {dir:'graphics/vol09_toolchain',files:['vol9_01_debugging_mindset.png','vol9_02_compiler_warnings.png','vol9_03_gdb.png','vol9_04_core_dumps.png','vol9_05_valgrind.png','vol9_06_asan_ubsan.png','vol9_07_strace_ltrace.png','vol9_08_gprof_perf.png','vol9_09_flamegraph_cachegrind.png','vol9_10_gdb_remote_openocd.png']},
+  {dir:'graphics/vol10_data_structures',files:['vol10_01_dynamic_array.png','vol10_02_intrusive_lists.png','vol10_03_stack_queue.png','vol10_04_spsc_ringbuf.png','vol10_05_robin_hood.png','vol10_06_avl_tree.png','vol10_07_binary_heap.png','vol10_08_trie.png','vol10_09_introsort_radix.png','vol10_10_memory_pool.png']},
+];
+let curVol=0,lbIdx=0;
+const lbl=f=>f.replace(/\.png$/,'').replace(/^(pointer|vol\d+)_\d+_/,'').replace(/_/g,' ');
+function showVol(n,btn){
+  curVol=n;document.querySelectorAll('.vtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const v=VOLS[n];
+  document.getElementById('gallery').innerHTML=v.files.map((f,i)=>
+    `<div class="png-card" onclick="lbOpen(${i})"><img src="${v.dir}/${f}" alt="${lbl(f)}" loading="lazy"><div class="png-lbl">${lbl(f)}</div></div>`
+  ).join('');
+}
+function lbOpen(i){lbIdx=i;const v=VOLS[curVol];document.getElementById('lb-img').src=`${v.dir}/${v.files[i]}`;document.getElementById('lb-lbl').textContent=`${i+1}/${v.files.length} — ${lbl(v.files[i])}`;document.getElementById('lb').classList.add('open');}
+function lbClose(){document.getElementById('lb').classList.remove('open');}
+function lbNav(d){lbOpen((lbIdx+d+VOLS[curVol].files.length)%VOLS[curVol].files.length);}
+document.getElementById('lb').addEventListener('click',e=>{if(e.target===e.currentTarget)lbClose();});
+document.addEventListener('keydown',e=>{if(!document.getElementById('lb').classList.contains('open'))return;if(e.key==='ArrowRight')lbNav(1);else if(e.key==='ArrowLeft')lbNav(-1);else if(e.key==='Escape')lbClose();});
+const secs=document.querySelectorAll('section[id]');
+const tabs=document.querySelectorAll('nav a.tab');
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)tabs.forEach(t=>t.classList.toggle('active',t.getAttribute('href')==='#'+e.target.id));});},{rootMargin:'-30% 0px -60% 0px'});
+secs.forEach(s=>io.observe(s));
+showVol(0,document.querySelector('.vtab'));
+</script>
+</body>
+</html>
