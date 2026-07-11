@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C Mastery — Volume I: Mastering Pointers</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.player{background:#fff;border:1px solid #ddd;border-radius:14px;overflow:hidden;width:100%;max-width:860px;box-shadow:0 2px 16px rgba(0,0,0,.09)}
+.hdr{padding:14px 22px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.chip{font-size:11px;font-weight:700;letter-spacing:.08em;background:#f0f0ec;border:1px solid #ddd;border-radius:6px;padding:2px 8px;color:#666}
+.hdr h2{font-size:15px;font-weight:600;color:#222}
+.slide-count{font-size:12px;color:#aaa;white-space:nowrap}
+#diag{background:#f8f8f4;padding:20px;min-height:275px;display:flex;align-items:center;justify-content:center;transition:opacity .2s}
+.narr-wrap{padding:14px 22px;border-top:1px solid #eee}
+.narr-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:6px}
+#narr{font-size:14px;line-height:1.8;min-height:92px;color:#333}
+.prog-wrap{padding:0 22px 5px}
+.prog{height:3px;background:#ececec;border-radius:2px;cursor:pointer}
+.prog-fill{height:100%;background:#444;border-radius:2px;transition:width .2s}
+.ctrls{padding:11px 22px 16px;display:flex;align-items:center;justify-content:center;gap:12px}
+button{border:1px solid #e0e0e0;background:#fff;border-radius:9px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#333;display:flex;align-items:center;gap:5px;transition:background .12s;white-space:nowrap}
+button:hover{background:#f5f5f0}
+#playbtn{padding:8px 24px;font-size:14px;border-color:#ccc}
+.kbd{font-size:11px;color:#bbb;text-align:center;padding-bottom:10px}
+svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+@keyframes drawArr{from{stroke-dashoffset:320}to{stroke-dashoffset:0}}
+.da{stroke-dasharray:320;animation:drawArr .65s ease forwards}
+@keyframes popIn{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
+.pi{animation:popIn .4s ease forwards}
+
+/* ── AssemblyAI Voice Input + Q&A ─────────────────────────────────────────── */
+#micbtn{
+  padding:.45rem .9rem;border-radius:6px;cursor:pointer;font-size:.82rem;
+  font-weight:500;border:1px solid #30363d;background:#161b22;color:#8b949e;
+  transition:.15s;margin-left:.25rem;
+}
+#micbtn:hover{border-color:#58a6ff;color:#58a6ff;}
+#micbtn.aai-live{background:#2d0f0f;border-color:#f85149;color:#f85149;animation:aai-pulse 1.2s infinite;}
+@keyframes aai-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+#voice-panel{
+  display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+  width:min(660px,94vw);background:#161b22;border:1px solid #30363d;
+  border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.75);z-index:9999;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;
+}
+#voice-panel.aai-open{display:block;}
+#vp-bar{
+  background:#21262d;padding:.5rem 1rem;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid #30363d;
+}
+#vp-status{font-size:.75rem;color:#8b949e;display:flex;align-items:center;gap:.4rem;}
+#vp-status.aai-live::before{content:'\25CF';color:#f85149;font-size:.65rem;}
+#vp-close{background:none;border:none;color:#8b949e;cursor:pointer;font-size:1.1rem;padding:.1rem .4rem;line-height:1;}
+#vp-close:hover{color:#e6edf3;}
+#vp-transcript{
+  padding:.75rem 1rem;font-size:.88rem;color:#e6edf3;min-height:2.6rem;
+  line-height:1.55;border-bottom:1px solid #21262d;font-style:italic;
+}
+#vp-transcript.aai-empty::before{content:'Say anything — end with ? to get an AI answer';color:#484f58;font-style:italic;}
+#vp-answer{
+  display:none;padding:.75rem 1rem;font-size:.84rem;color:#c9d1d9;
+  line-height:1.65;max-height:260px;overflow-y:auto;
+}
+#vp-answer.aai-show{display:block;}
+#vp-answer code{
+  background:#010409;padding:.1rem .35rem;border-radius:3px;
+  font-family:'SFMono-Regular',Consolas,monospace;font-size:.8em;color:#e6edf3;
+}
+#vp-answer pre{
+  background:#010409;border:1px solid #30363d;border-radius:6px;padding:.6rem .8rem;
+  font-size:.78rem;overflow-x:auto;margin:.4rem 0;white-space:pre;
+  font-family:'SFMono-Regular',Consolas,monospace;color:#e6edf3;
+}
+#vp-answer p{margin:.35rem 0;}
+#vp-footer{padding:.35rem 1rem .6rem;font-size:.7rem;color:#484f58;}
+</style>
+</head>
+<body>
+<div class="player">
+  <div class="hdr">
+    <div class="hdr-left">
+      <span class="chip">VOL I</span>
+      <h2 id="stitle">Mastering Pointers in C</h2>
+    </div>
+    <span class="slide-count" id="scount"></span>
+  </div>
+  <div id="diag"></div>
+  <div class="narr-wrap">
+    <div class="narr-label">Narration</div>
+    <p id="narr"></p>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog" id="pbar" onclick="pgClick(event)">
+      <div class="prog-fill" id="pfill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="ctrls">
+    <button onclick="goPrev()">&#9664; Prev</button>
+    <button id="playbtn" onclick="toggle()">&#9654; Play</button>
+    <button onclick="goNext()">Next &#9654;</button>
+    <button id="ttsbtn" onclick="ttsToggle()" title="Read narration aloud">&#128263; Voice Off</button>
+    <button id="micbtn" onclick="_micToggle()" title="Voice input &amp; Q&amp;A">&#127908; Ask</button>
+  </div>
+  <div class="kbd">Space&nbsp;=&nbsp;play/pause &nbsp;·&nbsp; &larr;&rarr;&nbsp;=&nbsp;step &nbsp;·&nbsp; click progress bar to jump &nbsp;·&nbsp; V&nbsp;=&nbsp;voice</div>
+</div>
+
+<script>
+// ── SVG marker ──────────────────────────────────────────────────────────────
+const MK='<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+// memory cell: box + name above + value inside + optional addr below
+const mc=(x,y,w,h,name,val,fc,tc,ec,adr)=>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="${fc}" stroke="${ec}" stroke-width="1.6" class="pi"/>` +
+  `<text x="${x+w/2}" y="${y-14}" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#222">${name}</text>` +
+  `<text x="${x+w/2}" y="${y+h/2}" text-anchor="middle" dominant-baseline="central" style="font-size:${val.length>8?14:val.length>4?18:24}px;font-weight:700;fill:${tc};font-family:${val.startsWith('0x')?'monospace':'inherit'}">${val}</text>` +
+  (adr?`<text x="${x+w/2}" y="${y+h+17}" text-anchor="middle" style="font-size:11px;fill:#999;font-family:monospace">${adr}</text>`:'');
+
+// animated arrow
+const ar=(x1,y1,x2,y2,c,lbl)=>
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c||'#1565C0'}" stroke-width="2.4" marker-end="url(#ah)" fill="none" class="da"/>` +
+  (lbl?`<text x="${(x1+x2)/2}" y="${Math.min(y1,y2)-8}" text-anchor="middle" style="font-size:11px;fill:${c||'#1565C0'}">${lbl}</text>`:'');
+
+// text label
+const tx=(x,y,t,a,c,sz)=>
+  `<text x="${x}" y="${y}" text-anchor="${a||'middle'}" style="font-size:${sz||12}px;fill:${c||'#777'}">${t}</text>`;
+
+// code / mono box
+const cd=(x,y,w,h,t)=>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="#f2f2ee" stroke="#d8d8d0" stroke-width="0.8"/>` +
+  `<text x="${x+w/2}" y="${y+h/2}" text-anchor="middle" dominant-baseline="central" style="font-family:monospace;font-size:12px;fill:#222">${t}</text>`;
+
+// highlight band
+const band=(x,y,w,h,fc,ec)=>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fc}" stroke="${ec}" stroke-width="0.8"/>`;
+
+// colours
+const BLU_F='#deeeff', BLU_T='#1040a0', BLU_E='#88aaf0';
+const AMB_F='#fff3e0', AMB_T='#b26a00', AMB_E='#f5b942';
+const GRN_F='#e6f4ee', GRN_T='#1a7a40', GRN_E='#4caf79';
+const RED_F='#ffe0e0', RED_T='#c62828', RED_E='#e08888';
+const GRY_F='#f2f2ee', GRY_T='#555',   GRY_E='#ccc';
+const TEL_F='#e0f4f4', TEL_T='#0d6a6a',TEL_E='#4db3b3';
+
+// ── Slides ───────────────────────────────────────────────────────────────────
+const SLIDES=[
+
+// 1 ── What is a pointer? ────────────────────────────────────────────────────
+{title:"What is a pointer?",
+narration:"In C, every variable lives at a specific numbered location in memory called its address. A pointer is a variable that stores one of those addresses. Instead of holding a value like 42, it holds a location — the address where a value lives. This single idea underpins everything in systems programming: manual memory management, data structures, function callbacks, and the operating system kernel itself.",
+svg:`<svg width="100%" viewBox="0 0 840 240">${MK}
+${tx(420,14,'p does not contain 42 — it contains the address where 42 lives')}
+${mc(130,55,190,75,'p (int*)','0x1000',BLU_F,BLU_T,BLU_E,'lives at 0x2000')}
+${ar(322,92,468,92,'#1565C0','points to')}
+${mc(470,55,190,75,'x (int)','42',AMB_F,AMB_T,AMB_E,'lives at 0x1000')}
+${tx(225,165,'stores the address','middle','#999')}
+${tx(565,165,'stores the value','middle','#999')}
+${cd(80,186,270,22,'int *p = &x;')}
+${cd(480,186,270,22,'int x = 42;')}
+<line x1="420" y1="184" x2="420" y2="210" stroke="#eee" stroke-width="1.5"/>
+</svg>`},
+
+// 2 ── Variables occupy memory ────────────────────────────────────────────────
+{title:"Variables occupy memory — different types, different sizes",
+narration:"When you declare int x = 42, the compiler reserves exactly 4 bytes in RAM and stores the binary representation of 42 there. Those bytes have a unique address — a number identifying their location. Different types occupy different amounts of space. A char is 1 byte, an int is 4 bytes on all modern platforms, a double is 8 bytes. The sizeof operator returns the exact byte count for any type or variable. Addresses increase by the number of bytes the variable occupies.",
+svg:`<svg width="100%" viewBox="0 0 840 236">${MK}
+${tx(420,14,'Three types — three addresses — three byte counts')}
+${mc(80,55,120,72,'c (char)','\'A\'',TEL_F,TEL_T,TEL_E,'0x1000  ·  1 byte')}
+${mc(290,55,180,72,'x (int)','42',AMB_F,AMB_T,AMB_E,'0x1004  ·  4 bytes')}
+${mc(560,55,200,72,'d (double)','3.14',BLU_F,BLU_T,BLU_E,'0x1008  ·  8 bytes')}
+${cd(80,157,120,20,'sizeof(c)==1')}
+${cd(290,157,180,20,'sizeof(x)==4')}
+${cd(560,157,200,20,'sizeof(d)==8')}
+${tx(420,196,'The address of any variable is always a multiple of its type\'s alignment requirement')}
+${band(80,215,680,18,GRN_F,GRN_E)}
+${tx(420,224,'&c == 0x1000 | &x == 0x1004 | &d == 0x1008  (addresses depend on compiler and platform)','middle',GRN_T)}
+</svg>`},
+
+// 3 ── Declaring a pointer ────────────────────────────────────────────────────
+{title:"Declaring a pointer — always initialize",
+narration:"Writing int *p declares p as a variable whose type is pointer-to-int. The star is part of the type, not an operator. At this point p is uninitialized — it contains whatever bytes happened to be in that memory location before, which could be any address at all. Dereferencing an uninitialized pointer is undefined behavior and causes unpredictable crashes or silent data corruption. Always initialize: set p to NULL to mean 'points to nothing yet', or immediately assign it the address of a valid variable.",
+svg:`<svg width="100%" viewBox="0 0 840 244">${MK}
+${tx(420,14,'Always initialize a pointer — an uninitialized pointer is a live grenade')}
+<rect x="36" y="26" width="374" height="186" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
+${tx(223,42,'Uninitialized — DANGEROUS','middle',RED_T,13)}
+${mc(80,55,260,75,'p','0xDEAD??',RED_F,RED_T,RED_E)}
+${tx(210,148,'contains garbage — could be any address','middle','#c62828')}
+${tx(210,164,'*p here = undefined behavior','middle','#c62828')}
+${cd(80,176,260,22,'int *p;  // DANGER: garbage')}
+<rect x="426" y="26" width="378" height="186" rx="8" fill="${GRN_F}" stroke="${GRN_E}" stroke-width="1"/>
+${tx(615,42,'Initialized — SAFE','middle',GRN_T,13)}
+${mc(468,55,260,75,'p','0x0000',GRN_F,GRN_T,GRN_E,'int*   ·   NULL = points nowhere')}
+${tx(597,148,'NULL means: I don\'t point to anything yet','middle',GRN_T)}
+${tx(597,164,'if (p) { *p; } is always safe','middle',GRN_T)}
+${cd(468,176,260,22,'int *p = NULL;  // SAFE')}
+</svg>`},
+
+// 4 ── The & operator ─────────────────────────────────────────────────────────
+{title:"The & operator — taking the address of a variable",
+narration:"The ampersand operator, called address-of, returns the memory address where a variable lives. Writing p = &x reads the label off x's location — say 0x1004 — and stores that number into p. Now p holds the location of x, not x's value. If x later becomes 99, following p still finds 0x1004, but the value there is now 99. You can apply & to any l-value: local variables, array elements, struct fields, even other pointers. You cannot apply it to temporaries or register variables.",
+svg:`<svg width="100%" viewBox="0 0 840 238">${MK}
+${tx(420,14,'&x reads the address of x — like reading the door number off a building')}
+${mc(160,55,200,75,'x (int)','42',AMB_F,AMB_T,AMB_E,'lives at 0x1004')}
+${cd(80,158,360,22,'p = &x;   // &x evaluates to 0x1004')}
+${mc(480,55,200,75,'p (int*)','0x1004',BLU_F,BLU_T,BLU_E,'lives at 0x2000')}
+${ar(682,92,720,92,BLU_T)}${mc(722,68,80,52,'x','42',AMB_F,AMB_T,AMB_E)}
+${tx(260,196,'&x does not copy 42 — it copies 0x1004','middle','#666')}
+${tx(580,196,'p now "points to" x','middle','#1565C0')}
+${tx(580,158,'p contains 0x1004 (the address of x)','middle','#666')}
+${ar(290,92,478,92,'#1565C0','&x → 0x1004')}
+</svg>`},
+
+// 5 ── * operator — reading ───────────────────────────────────────────────────
+{title:"The * operator — reading through a pointer (dereferencing)",
+narration:"The star in an expression means follow the pointer. Writing *p tells the CPU: read the value stored in p, treat it as an address, travel to that address in memory, and return what is there. If p holds 0x1004 and x lives at 0x1004 with value 42, then *p evaluates to 42. This two-step trip — first read the address from p, then read the value at that address — is called dereferencing. The star on the left side of a declaration is a type annotation; the star in an expression is the dereference operator.",
+svg:`<svg width="100%" viewBox="0 0 840 236">${MK}
+${tx(420,14,'*p: step 1 read the address from p — step 2 go there and return the value')}
+${mc(60,60,160,70,'p','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${ar(222,95,312,95,'#1565C0')}
+<rect x="312" y="72" width="130" height="46" rx="6" fill="${BLU_F}" stroke="${BLU_E}" stroke-width="1.5"/>
+${tx(377,95,'0x1004','middle',BLU_T,15)}
+${tx(377,130,'the address','middle','#888')}
+${ar(444,95,534,95,'#1565C0')}
+${mc(534,60,180,70,'x','42',AMB_F,AMB_T,AMB_E,'at 0x1004')}
+${tx(130,148,'1. read address from p','middle','#888')}${tx(377,148,'2. go to 0x1004','middle','#888')}${tx(624,148,'3. return value'  ,'middle','#888')}
+${band(240,172,360,24,GRN_F,GRN_E)}
+${tx(420,184,'*p  ==  42','middle',GRN_T,15)}
+${cd(60,200,350,22,'int val = *p;   // val gets 42')}
+${cd(430,200,350,22,'assert(val == x);  // always true')}
+</svg>`},
+
+// 6 ── * operator — writing ───────────────────────────────────────────────────
+{title:"The * operator — writing through a pointer",
+narration:"The star on the left side of an assignment writes through the pointer. Writing *p = 99 means: go to the address stored in p and place 99 there. Since p points to x, this changes x's value to 99 without ever naming x directly. The note — the pointer — does not change; only the contents of the box it points to change. This is how functions in C modify their caller's variables: the caller passes a pointer, the function dereferences and writes through it.",
+svg:`<svg width="100%" viewBox="0 0 840 234">${MK}
+${tx(420,14,'*p = 99 follows the pointer and overwrites what is inside the box')}
+<line x1="420" y1="30" x2="420" y2="210" stroke="#eee" stroke-width="1.5"/>
+${tx(210,32,'Before','middle','#aaa',12)}${tx(630,32,'After   *p = 99;','middle',RED_T,12)}
+${mc(80,50,170,72,'p','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${ar(252,86,318,86,'#1565C0')}
+${mc(320,50,170,72,'x','42',AMB_F,AMB_T,AMB_E,'at 0x1004')}
+${mc(500,50,170,72,'p','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${ar(672,86,738,86,'#c62828')}
+${mc(740,50,60,72,'x','99',RED_F,RED_T,RED_E,'at 0x1004')}
+${tx(210,148,'note unchanged','middle','#888')}
+${tx(630,148,'same note — new contents!','middle',RED_T)}
+${cd(40,162,370,22,'// before:  x == 42, *p == 42')}
+${cd(430,162,370,22,'*p = 99;  // x is now 99')}
+${band(40,192,760,22,GRN_F,GRN_E)}
+${tx(420,203,'*p and x name the same memory location — they always agree','middle',GRN_T)}
+</svg>`},
+
+// 7 ── Pointer to pointer ─────────────────────────────────────────────────────
+{title:"Pointer to pointer — double indirection",
+narration:"A pointer can point to another pointer. int **pp declares pp as a pointer to a pointer to int. *pp gives you the pointer p; **pp follows p to give you x's value. Each star in an expression adds one level of indirection — one more memory lookup. This is how C passes pointer arguments to functions that need to modify the pointer itself, how argv is structured in main, and how two-dimensional dynamically allocated arrays work. Reading the type right to left: pp is a pointer to a pointer to int.",
+svg:`<svg width="100%" viewBox="0 0 840 238">${MK}
+${tx(420,14,'Each * in an expression follows one pointer — two stars = two lookups')}
+${mc(80,60,160,72,'pp (int**)','0x2000',GRN_F,GRN_T,GRN_E,'at 0x3000')}
+${ar(242,96,332,96,GRN_T,'*pp')}
+${mc(334,60,160,72,'p (int*)','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${ar(496,96,586,96,BLU_T,'**pp')}
+${mc(588,60,160,72,'x (int)','42',AMB_F,AMB_T,AMB_E,'at 0x1004')}
+${tx(162,148,'holds addr of p','middle','#888')}
+${tx(414,148,'holds addr of x','middle','#888')}
+${tx(668,148,'holds the value','middle','#888')}
+${cd(40,162,370,22,'int **pp = &p;   // pp → p → x')}
+${cd(430,162,370,22,'**pp == 42;  *pp == &x;')}
+${band(40,192,760,22,BLU_F,BLU_E)}
+${tx(420,203,'argv in main(int argc, char **argv) is a pointer to an array of char pointers','middle',BLU_T)}
+</svg>`},
+
+// 8 ── Pointer arithmetic ─────────────────────────────────────────────────────
+{title:"Pointer arithmetic — scaled by the type's size",
+narration:"Adding n to a pointer advances it by n times the size of the pointed-to type. Adding 1 to an int pointer moves it forward 4 bytes; adding 1 to a double pointer moves 8 bytes. The formula is: new address equals old address plus n times sizeof of star p. This scaling is why arr bracket i and star open-paren arr plus i close-paren produce identical machine code — the compiler generates the same multiplication. Arithmetic is defined only within an array or one element past its end.",
+svg:`<svg width="100%" viewBox="0 0 840 218">${MK}
+${tx(420,14,'int arr[5]  —  p = arr  —  each element is 4 bytes')}
+${[0,1,2,3,4].map(i=>{const x=60+i*148,v=[10,20,30,40,50][i],addr='0x'+(0x1000+i*4).toString(16).toUpperCase();
+  return mc(x,24,140,52,`arr[${i}]`,`${v}`,i===0?AMB_F:BLU_F,i===0?AMB_T:BLU_T,i===0?AMB_E:BLU_E,addr);}).join('')}
+${ar(60,94,800,94,'#aaa')}
+${tx(420,110,'each +1 on int*  advances 4 bytes  (sizeof int = 4)')}
+${[[0,'p + 0','0x1000  →  10'],[1,'p + 1','0x1004  →  20  (+4)'],[2,'p + 2','0x1008  →  30  (+8)'],[3,'*(p+4)','0x1010  →  50  same as arr[4]']].map(([i,expr,res])=>
+  cd(20+i*202,122,198,18,expr)+tx(119+i*202,152,res,'middle','#555')).join('')}
+${band(20,165,800,20,GRN_F,GRN_E)}
+${tx(420,175,'arr[i]  ≡  *(arr+i)  ≡  *(p+i)  — the compiler generates identical code for all three','middle',GRN_T)}
+${cd(20,190,800,22,'char *cp = (char*)p;  cp+1 advances only 1 byte  (sizeof char = 1)')}
+</svg>`},
+
+// 9 ── NULL pointer ───────────────────────────────────────────────────────────
+{title:"NULL — the safe zero address",
+narration:"NULL is the pointer value zero — an address the operating system guarantees is never mapped to anything real. Dereferencing NULL crashes immediately with a segmentation fault, which makes NULL bugs obvious rather than silent. Use NULL as an explicit sentinel meaning 'this pointer currently points to nothing'. After calling free, always set the pointer to NULL: the heap block is gone, and if the pointer is used again it will crash immediately rather than silently reading or writing freed memory that may now belong to something else.",
+svg:`<svg width="100%" viewBox="0 0 840 246">${MK}
+${tx(420,14,'NULL = address zero — the OS never maps it — dereference = immediate crash')}
+${mc(80,50,190,72,'p = NULL','0x0000',RED_F,RED_T,RED_E)}
+${ar(272,86,360,86,RED_T)}
+<rect x="360" y="54" width="130" height="64" rx="7" fill="${RED_F}" stroke="${RED_E}" stroke-width="1.6"/>
+${tx(425,78,'CRASH','middle',RED_T,20)}${tx(425,100,'SIGSEGV','middle',RED_T,12)}
+${tx(180,140,'never maps to anything','middle','#aaa')}${tx(425,136,'*p = instant death','middle',RED_T)}
+${band(520,48,280,100,GRN_F,GRN_E)}
+${tx(660,72,'safe pattern','middle',GRN_T,13)}
+${cd(526,90,268,18,'if (p != NULL) {')}
+${cd(526,110,268,18,'    use *p;  }')}
+${tx(660,136,'always check before dereferencing','middle',GRN_T)}
+${band(40,158,760,28,AMB_F,AMB_E)}
+${tx(420,172,'After free: always set to NULL — prevents use-after-free becoming a silent data corruption','middle',AMB_T)}
+${cd(40,192,376,22,'free(p);  p = NULL;  // correct')}
+${cd(430,192,370,22,'free(p);  *p = 5;   // UB: use-after-free')}
+</svg>`},
+
+// 10 ── The three pointer traps ───────────────────────────────────────────────
+{title:"The three pointer traps",
+narration:"Three mistakes account for nearly all pointer bugs in C. First: uninitialized pointer — it contains a garbage address, and dereferencing reads or writes an unpredictable location. Second: use-after-free — the memory was returned to the allocator; the old pointer now may point into someone else's allocation, giving silently wrong data. Third: out-of-bounds access — C never checks array bounds, so reading past the end overwrites adjacent memory. The address sanitizer catches all three: compile with -fsanitize=address.",
+svg:`<svg width="100%" viewBox="0 0 840 262">${MK}
+${tx(420,14,'Three mistakes account for nearly all pointer bugs — catch them with -fsanitize=address')}
+<rect x="22" y="28" width="258" height="178" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
+${tx(151,44,'Trap 1: uninitialized pointer','middle',RED_T,12)}
+${mc(56,54,190,60,'p','0xDEAD??',RED_F,RED_T,RED_E)}
+${tx(151,126,'reads/writes random location','middle','#c62828')}${tx(151,142,'undefined behavior','middle','#c62828')}
+${cd(36,154,226,22,'int *p;  *p = 5; // UB')}
+${cd(36,180,226,22,'Fix: int *p = NULL;')}
+<rect x="292" y="28" width="256" height="178" rx="8" fill="#fff8e0" stroke="#f0c060" stroke-width="1"/>
+${tx(420,44,'Trap 2: use-after-free','middle','#8a6000',12)}
+${mc(316,54,206,60,'p','0x1004','#fff8e0','#a07010','#f0c060')}
+<rect x="352" y="124" width="140" height="38" rx="6" fill="none" stroke="#f0c060" stroke-width="1.5" stroke-dasharray="6 4"/>
+${tx(422,143,'(freed block)','middle','#a07010')}
+${ar(420,116,420,122,'#a07010')}
+${cd(298,168,234,20,'free(p); *p=5; // UB')}
+${cd(298,190,234,20,'Fix: free(p); p=NULL;')}
+<rect x="562" y="28" width="256" height="178" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
+${tx(690,44,'Trap 3: out-of-bounds','middle',RED_T,12)}
+${[0,1,2].map(i=>mc(572+i*76,54,72,54,`[${i}]`,`${[10,20,30][i]}`,BLU_F,BLU_T,BLU_E)).join('')}
+<rect x="800" y="54" width="12" height="54" rx="3" fill="${RED_F}" stroke="${RED_E}" stroke-width="1.5"/>
+${ar(684,81,796,81,RED_T)}
+${tx(690,120,'int arr[3]; arr[3]=5;','middle','#c62828')}
+${tx(690,136,'C never checks bounds!','middle','#c62828')}
+${cd(568,168,234,20,'arr[3] = 5; // UB')}
+${cd(568,190,234,20,'Fix: check i < 3 always')}
+${band(22,214,796,24,GRN_F,GRN_E)}
+${tx(420,226,'All three caught at runtime by:  gcc -fsanitize=address -fsanitize=undefined','middle',GRN_T)}
+${band(22,242,796,18,BLU_F,BLU_E)}
+${tx(420,251,'Valgrind also detects use-after-free and uninitialized reads with full stack traces','middle',BLU_T)}
+</svg>`},
+
+];
+
+
+// ── Text-to-Speech (Web Speech API) ──────────────────────────────────────────
+let ttsOn = false, ttsUtter = null, ttsVoice = null;
+
+function ttsPickVoice() {
+  const vs = speechSynthesis.getVoices();
+  if (!vs.length) return null;
+  // Prefer a natural en-US/en-GB voice; fall back to any English, then first
+  return vs.find(v => /en[-_](US|GB)/i.test(v.lang) && /natural|neural|premium/i.test(v.name))
+      || vs.find(v => /en[-_](US|GB)/i.test(v.lang))
+      || vs.find(v => v.lang.startsWith('en'))
+      || vs[0];
+}
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = () => { ttsVoice = ttsPickVoice(); };
+  ttsVoice = ttsPickVoice();
+}
+
+function ttsSpeak(text, onEnd) {
+  if (!ttsOn || !('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
+  speechSynthesis.cancel();
+  // Clean text for speech: strip code-ish punctuation that reads badly
+  const clean = text
+    .replace(/->/g, ' arrow ')
+    .replace(/&/g, ' ampersand ')
+    .replace(/\*p\b/g, 'star p')
+    .replace(/`/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ttsUtter = new SpeechSynthesisUtterance(clean);
+  if (ttsVoice) ttsUtter.voice = ttsVoice;
+  ttsUtter.rate = 0.95;
+  ttsUtter.pitch = 1.0;
+  if (onEnd) ttsUtter.onend = onEnd;
+  speechSynthesis.speak(ttsUtter);
+}
+
+function ttsStop() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+function ttsToggle() {
+  ttsOn = !ttsOn;
+  const b = document.getElementById('ttsbtn');
+  if (ttsOn) {
+    b.textContent = '🔊 Voice On';
+    b.style.background = '#e6f4ee';
+    b.style.borderColor = '#4caf79';
+    // Speak the current slide immediately so the user gets feedback
+    ttsSpeak(SLIDES[vi].title + '. ' + SLIDES[vi].narration, null);
+  } else {
+    b.textContent = '🔇 Voice Off';
+    b.style.background = '';
+    b.style.borderColor = '';
+    ttsStop();
+  }
+}
+window.addEventListener('beforeunload', ttsStop);
+
+// ── Playback engine ──────────────────────────────────────────────────────────
+let vi=0, playing=false, ticker=null, ctick=null;
+
+function goTo(n) {
+  vi = Math.max(0, Math.min(n, SLIDES.length-1));
+  const s = SLIDES[vi];
+  document.getElementById('stitle').textContent = s.title;
+  document.getElementById('scount').textContent = (vi+1) + ' / ' + SLIDES.length;
+  const d = document.getElementById('diag');
+  d.style.opacity = '0';
+  d.innerHTML = s.svg;
+  setTimeout(() => d.style.opacity = '1', 30);
+  document.getElementById('pfill').style.width = (vi / (SLIDES.length-1) * 100) + '%';
+  clearInterval(ctick);
+  let pos = 0, full = s.narration;
+  document.getElementById('narr').textContent = '';
+  ctick = setInterval(() => {
+    if (pos < full.length) document.getElementById('narr').textContent = full.slice(0, ++pos);
+    else clearInterval(ctick);
+  }, 18);
+  ttsStop();
+  if (ttsOn) {
+    ttsSpeak(s.title + '. ' + full, () => {
+      if (playing) { clearTimeout(ticker); ticker = setTimeout(() => { if (vi < SLIDES.length-1) goTo(vi+1); else pause(); }, 1200); }
+    });
+    if (playing) clearTimeout(ticker);  // speech end drives advance
+  } else if (playing) {
+    clearTimeout(ticker);
+    ticker = setTimeout(() => {
+      if (vi < SLIDES.length-1) goTo(vi+1); else pause();
+    }, Math.max(9000, full.length * 55));
+  }
+}
+
+function play() {
+  playing = true;
+  document.getElementById('playbtn').textContent = '⏸ Pause';
+  if (ttsOn) {
+    ttsSpeak(SLIDES[vi].title + '. ' + SLIDES[vi].narration, () => {
+      if (playing) ticker = setTimeout(() => { if (vi < SLIDES.length-1) goTo(vi+1); else pause(); }, 1200);
+    });
+  } else {
+    ticker = setTimeout(() => {
+      if (vi < SLIDES.length-1) goTo(vi+1); else pause();
+    }, Math.max(9000, SLIDES[vi].narration.length * 55));
+  }
+}
+function pause() {
+  playing = false;
+  clearTimeout(ticker);
+  ttsStop();
+  document.getElementById('playbtn').textContent = '▶ Play';
+}
+function toggle() { playing ? pause() : play(); }
+function goNext() { clearTimeout(ticker); goTo(vi+1); if (playing) play(); }
+function goPrev() { clearTimeout(ticker); goTo(vi-1); if (playing) play(); }
+function pgClick(e) {
+  const r = document.getElementById('pbar').getBoundingClientRect();
+  clearTimeout(ticker);
+  goTo(Math.round((e.clientX - r.left) / r.width * (SLIDES.length-1)));
+  if (playing) play();
+}
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (e.key === ' ') { e.preventDefault(); toggle(); }
+  else if (e.key === 'ArrowRight') goNext();
+  else if (e.key === 'ArrowLeft') goPrev();
+  else if (e.key === 'v' || e.key === 'V') ttsToggle();
+});
+
+goTo(0);
+</script>
+
+<div id="voice-panel">
+  <div id="vp-bar">
+    <span id="vp-status">Ready</span>
+    <button id="vp-close" onclick="_vpClose()" aria-label="Close">&#x2715;</button>
+  </div>
+  <div id="vp-transcript" class="aai-empty"></div>
+  <div id="vp-answer"></div>
+  <div id="vp-footer">Powered by AssemblyAI &middot; universal-3-5-pro</div>
+</div>
+<script>
+/* ── AssemblyAI Voice Input + Q&A ────────────────────────────────────────── */
+const _AAI='REPLACE_WITH_VERCEL_URL';
+const _TERMS=['pointer','malloc','undefined behaviour','mutex','deadlock','epoll',
+  'mmap','fork','syscall','struct','volatile','restrict','pthread','semaphore',
+  'spinlock','realloc','calloc','free list','stack frame','heap internals'];
+/* AudioWorklet: capture Float32 mic audio → Int16 PCM at 16 kHz */
+const _WL=`class P extends AudioWorkletProcessor{process(i){const c=i[0]?.[0];if(c){const b=new Int16Array(c.length);for(let j=0;j<c.length;j++){const s=Math.max(-1,Math.min(1,c[j]));b[j]=s<0?s*0x8000:s*0x7FFF;}this.port.postMessage(b.buffer,[b.buffer]);}return true;}}registerProcessor('aai-pcm',P);`;
+
+let _ws=null,_ctx=null,_mic=null,_node=null,_buf=[],_on=false;
+
+const _$=id=>document.getElementById(id);
+const _status=(t,live)=>{const e=_$('vp-status');if(e){e.textContent=t;e.className=live?'aai-live':'';}};
+const _tx=t=>{const e=_$('vp-transcript');if(!e)return;e.textContent=t;e.className=t?'':'aai-empty';};
+const _ans=h=>{const e=_$('vp-answer');if(!e)return;e.innerHTML=h;e.className=h?'aai-show':'';};
+const _open=()=>_$('voice-panel')?.classList.add('aai-open');
+function _vpClose(){_$('voice-panel')?.classList.remove('aai-open');if(_on)_stop();}
+
+async function _start(){
+  if(_on)return;
+  if(_AAI==='REPLACE_WITH_VERCEL_URL'){
+    _open();_status('Backend not configured — see setup guide');return;
+  }
+  _open();_status('Connecting\u2026');_tx('');_ans('');
+  try{
+    /* 1. Mint short-lived token (API key stays on server) */
+    const tr=await fetch(_AAI+'/api/token');
+    if(!tr.ok)throw new Error('Token failed ('+tr.status+')');
+    const{token}=await tr.json();
+    /* 2. Open WebSocket using token — no API key in browser */
+    const p=new URLSearchParams({sample_rate:'16000',speech_model:'universal-3-5-pro',mode:'balanced',token});
+    _TERMS.forEach(t=>p.append('keyterms_prompt',t));
+    _ws=new WebSocket('wss://streaming.assemblyai.com/v3/ws?'+p);
+    await new Promise((ok,fail)=>{
+      _ws.onopen=ok;
+      _ws.onerror=()=>fail(new Error('WebSocket failed'));
+      setTimeout(()=>fail(new Error('Connection timed out')),10000);
+    });
+    _ws.onmessage=e=>{
+      const m=JSON.parse(e.data);
+      if(m.type!=='Turn')return;
+      _tx(m.transcript);
+      /* Auto-trigger Q&A when turn finalizes and ends with ? */
+      if(m.end_of_turn&&m.transcript.trim().endsWith('?'))_ask(m.transcript.trim());
+    };
+    _ws.onclose=()=>{_on=false;_btn();_status('Disconnected');};
+    /* 3. Capture mic → PCM16 via AudioWorklet → stream to AssemblyAI */
+    _mic=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
+    _ctx=new AudioContext({sampleRate:16000});
+    const bu=URL.createObjectURL(new Blob([_WL],{type:'application/javascript'}));
+    await _ctx.audioWorklet.addModule(bu);URL.revokeObjectURL(bu);
+    _node=new AudioWorkletNode(_ctx,'aai-pcm');
+    _node.port.onmessage=ev=>{
+      _buf.push(...new Int16Array(ev.data));
+      /* Send ~200 ms chunks (3200 samples @ 16 kHz) — within AssemblyAI 50–1000 ms window */
+      if(_buf.length>=3200&&_ws?.readyState===1)
+        _ws.send(new Int16Array(_buf.splice(0,3200)).buffer);
+    };
+    _ctx.createMediaStreamSource(_mic).connect(_node);
+    _on=true;_btn();_status('Listening',true);
+  }catch(err){_status('Error: '+err.message);_clean();}
+}
+
+function _stop(){
+  /* Always send Terminate — abandoned sessions stay billable until 3-hour cap */
+  if(_ws?.readyState===1){_ws.send(JSON.stringify({type:'Terminate'}));_ws.close();}
+  _clean();_status('Stopped');
+}
+function _clean(){_mic?.getTracks().forEach(t=>t.stop());_ctx?.close();_ws=_ctx=_mic=_node=null;_buf=[];_on=false;_btn();}
+function _btn(){const b=_$('micbtn');if(!b)return;b.textContent=_on?'\u23F9 Stop':'\uD83C\uDF99 Ask';b.className=_on?'aai-live':'';}
+function _micToggle(){_on?_stop():_start();}
+window.addEventListener('beforeunload',()=>{if(_ws?.readyState===1)_ws.send(JSON.stringify({type:'Terminate'}));});
+
+async function _ask(q){
+  _status('Answering\u2026');_ans('<em style="color:#8b949e">Thinking\u2026</em>');
+  try{
+    const r=await fetch(_AAI+'/api/qa',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({question:q,volume:document.title}),
+    });
+    if(!r.ok)throw new Error('Q&A failed ('+r.status+')');
+    const{answer}=await r.json();
+    /* Minimal markdown: fenced code blocks + inline code */
+    const h=answer
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
+      .replace(/`([^`]+)`/g,'<code>$1</code>')
+      .replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+    _ans('<p>'+h+'</p>');
+    _status(_on?'Listening':'Ready',_on);
+  }catch(err){
+    _ans('<em style="color:#f85149">'+err.message+'</em>');
+    _status(_on?'Listening':'Ready',_on);
+  }
+}
+
+</script>
+</body>
+</html>
