@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Bundled Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastering C — Interactive Systems Programming Course</title>
+  <meta name="description" content="10 interactive lectures, 100 analogy graphics, 12 reference volumes. Free C systems-programming curriculum built from ISO/IEC 9899 and POSIX.1-2017.">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #faf9f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -12,9 +14,50 @@
     #__bundler_placeholder { color: #999; font-size: 14px; }
   </style>
   <noscript>
-    <style>#__bundler_loading { display: none; }</style>
-    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
-      This page requires JavaScript to display.
+    <style>
+      #__bundler_loading, #__bundler_thumbnail { display: none; }
+      body { display: block; background: #0d1117; color: #e6edf3; }
+      .ns-wrap { max-width: 680px; margin: 0 auto; padding: 3rem 1.5rem; }
+      .ns-wrap h1 { font-size: 1.8rem; margin-bottom: .6rem; }
+      .ns-wrap p.lede { color: #8b949e; margin-bottom: 2rem; }
+      .ns-stats { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; }
+      .ns-stats div { text-align: center; }
+      .ns-stats .n { font-size: 1.4rem; font-weight: 700; display: block; }
+      .ns-stats .l { font-size: .75rem; color: #8b949e; text-transform: uppercase; }
+      .ns-wrap ol { margin: 0 0 2rem 1.2rem; }
+      .ns-wrap ol li { margin-bottom: .5rem; }
+      .ns-wrap a { color: #58a6ff; }
+      .ns-wrap ul.trust { list-style: none; margin: 0; color: #8b949e; font-size: .9rem; }
+      .ns-wrap ul.trust li { margin-bottom: .3rem; }
+      .ns-wrap ul.trust span { color: #3fb950; margin-right: .4rem; }
+    </style>
+    <div class="ns-wrap">
+      <h1>Mastering C — Interactive Systems Programming Course</h1>
+      <p class="lede">10 interactive lectures, 100 analogy graphics, 12 reference volumes. Free C systems-programming curriculum built from ISO/IEC 9899 and POSIX.1-2017. (This page normally renders as a richer, JavaScript-driven experience — showing the plain version because JavaScript is disabled.)</p>
+      <div class="ns-stats">
+        <div><span class="n">10</span><span class="l">lectures</span></div>
+        <div><span class="n">100</span><span class="l">graphics</span></div>
+        <div><span class="n">12</span><span class="l">volumes</span></div>
+        <div><span class="n">0</span><span class="l">deps</span></div>
+      </div>
+      <ol>
+        <li><a href="lectures/vol1_lecture.html">Volume I — Mastering Pointers</a></li>
+        <li><a href="lectures/vol2_lecture.html">Volume II — Pointers Deep Dive</a></li>
+        <li><a href="lectures/vol3_lecture.html">Volume III — Types &amp; Data Representation</a></li>
+        <li><a href="lectures/vol4_lecture.html">Volume IV — Preprocessor, Build &amp; Linkage</a></li>
+        <li><a href="lectures/vol5_lecture.html">Volume V — Undefined Behavior</a></li>
+        <li><a href="lectures/vol6_lecture.html">Volume VI — Standard Library</a></li>
+        <li><a href="lectures/vol7_lecture.html">Volume VII — Systems Programming</a></li>
+        <li><a href="lectures/vol8_lecture.html">Volume VIII — Concurrency</a></li>
+        <li><a href="lectures/vol9_lecture.html">Volume IX — Toolchain &amp; Debugging</a></li>
+        <li><a href="lectures/vol10_lecture.html">Volume X — Data Structures</a></li>
+      </ol>
+      <ul class="trust">
+        <li><span>✓</span>Works offline — no build, no server</li>
+        <li><span>✓</span>Voice narration on every slide</li>
+        <li><span>✓</span>Keyboard-driven navigation</li>
+        <li><span>✓</span>Standards-first, every claim traced</li>
+      </ul>
     </div>
   </noscript>
 </head>
@@ -160,6 +203,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // preserve ordering (React before ReactDOM before Babel before text/babel).
     const doc = new DOMParser().parseFromString(template, 'text/html');
     document.documentElement.replaceWith(doc.documentElement);
+    if (!document.title) document.title = 'Mastering C — Interactive Systems Programming Course';
     const dead = Array.from(document.scripts);
     for (const old of dead) {
       const s = document.createElement('script');
