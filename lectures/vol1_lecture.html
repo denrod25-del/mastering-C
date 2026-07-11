@@ -225,13 +225,13 @@ svg:`<svg width="100%" viewBox="0 0 840 244">${MK}
 ${tx(420,14,'Always initialize a pointer — an uninitialized pointer is a live grenade')}
 <rect x="36" y="26" width="374" height="186" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
 ${tx(223,42,'Uninitialized — DANGEROUS','middle',RED_T,13)}
-${mc(80,55,260,75,'p','0xDEAD??',RED_F,RED_T,RED_E)}
+${mc(80,55,260,75,'','0xDEAD??',RED_F,RED_T,RED_E)}
 ${tx(210,148,'contains garbage — could be any address','middle','#c62828')}
 ${tx(210,164,'*p here = undefined behavior','middle','#c62828')}
 ${cd(80,176,260,22,'int *p;  // DANGER: garbage')}
 <rect x="426" y="26" width="378" height="186" rx="8" fill="${GRN_F}" stroke="${GRN_E}" stroke-width="1"/>
 ${tx(615,42,'Initialized — SAFE','middle',GRN_T,13)}
-${mc(468,55,260,75,'p','0x0000',GRN_F,GRN_T,GRN_E,'int*   ·   NULL = points nowhere')}
+${mc(468,55,260,75,'','0x0000',GRN_F,GRN_T,GRN_E)}
 ${tx(597,148,'NULL means: I don\'t point to anything yet','middle',GRN_T)}
 ${tx(597,164,'if (p) { *p; } is always safe','middle',GRN_T)}
 ${cd(468,176,260,22,'int *p = NULL;  // SAFE')}
@@ -257,13 +257,13 @@ ${ar(290,92,478,92,'#1565C0','&x → 0x1004')}
 narration:"The star in an expression means follow the pointer. Writing *p tells the CPU: read the value stored in p, treat it as an address, travel to that address in memory, and return what is there. If p holds 0x1004 and x lives at 0x1004 with value 42, then *p evaluates to 42. This two-step trip — first read the address from p, then read the value at that address — is called dereferencing. The star on the left side of a declaration is a type annotation; the star in an expression is the dereference operator.",
 svg:`<svg width="100%" viewBox="0 0 840 236">${MK}
 ${tx(420,14,'*p: step 1 read the address from p — step 2 go there and return the value')}
-${mc(60,60,160,70,'p','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${mc(60,60,160,70,'p','0x1004',BLU_F,BLU_T,BLU_E)}
 ${ar(222,95,312,95,'#1565C0')}
 <rect x="312" y="72" width="130" height="46" rx="6" fill="${BLU_F}" stroke="${BLU_E}" stroke-width="1.5"/>
 ${tx(377,95,'0x1004','middle',BLU_T,15)}
 ${tx(377,130,'the address','middle','#888')}
 ${ar(444,95,534,95,'#1565C0')}
-${mc(534,60,180,70,'x','42',AMB_F,AMB_T,AMB_E,'at 0x1004')}
+${mc(534,60,180,70,'x','42',AMB_F,AMB_T,AMB_E)}
 ${tx(130,148,'1. read address from p','middle','#888')}${tx(377,148,'2. go to 0x1004','middle','#888')}${tx(624,148,'3. return value'  ,'middle','#888')}
 ${band(240,172,360,24,GRN_F,GRN_E)}
 ${tx(420,184,'*p  ==  42','middle',GRN_T,15)}
@@ -297,11 +297,11 @@ ${tx(420,203,'*p and x name the same memory location — they always agree','mid
 narration:"A pointer can point to another pointer. int **pp declares pp as a pointer to a pointer to int. *pp gives you the pointer p; **pp follows p to give you x's value. Each star in an expression adds one level of indirection — one more memory lookup. This is how C passes pointer arguments to functions that need to modify the pointer itself, how argv is structured in main, and how two-dimensional dynamically allocated arrays work. Reading the type right to left: pp is a pointer to a pointer to int.",
 svg:`<svg width="100%" viewBox="0 0 840 238">${MK}
 ${tx(420,14,'Each * in an expression follows one pointer — two stars = two lookups')}
-${mc(80,60,160,72,'pp (int**)','0x2000',GRN_F,GRN_T,GRN_E,'at 0x3000')}
+${mc(80,60,160,72,'pp (int**)','0x2000',GRN_F,GRN_T,GRN_E)}
 ${ar(242,96,332,96,GRN_T,'*pp')}
-${mc(334,60,160,72,'p (int*)','0x1004',BLU_F,BLU_T,BLU_E,'at 0x2000')}
+${mc(334,60,160,72,'p (int*)','0x1004',BLU_F,BLU_T,BLU_E)}
 ${ar(496,96,586,96,BLU_T,'**pp')}
-${mc(588,60,160,72,'x (int)','42',AMB_F,AMB_T,AMB_E,'at 0x1004')}
+${mc(588,60,160,72,'x (int)','42',AMB_F,AMB_T,AMB_E)}
 ${tx(162,148,'holds addr of p','middle','#888')}
 ${tx(414,148,'holds addr of x','middle','#888')}
 ${tx(668,148,'holds the value','middle','#888')}
@@ -314,17 +314,17 @@ ${tx(420,203,'argv in main(int argc, char **argv) is a pointer to an array of ch
 // 8 ── Pointer arithmetic ─────────────────────────────────────────────────────
 {title:"Pointer arithmetic — scaled by the type's size",
 narration:"Adding n to a pointer advances it by n times the size of the pointed-to type. Adding 1 to an int pointer moves it forward 4 bytes; adding 1 to a double pointer moves 8 bytes. The formula is: new address equals old address plus n times sizeof of star p. This scaling is why arr bracket i and star open-paren arr plus i close-paren produce identical machine code — the compiler generates the same multiplication. Arithmetic is defined only within an array or one element past its end.",
-svg:`<svg width="100%" viewBox="0 0 840 218">${MK}
+svg:`<svg width="100%" viewBox="0 0 840 260">${MK}
 ${tx(420,14,'int arr[5]  —  p = arr  —  each element is 4 bytes')}
 ${[0,1,2,3,4].map(i=>{const x=60+i*148,v=[10,20,30,40,50][i],addr='0x'+(0x1000+i*4).toString(16).toUpperCase();
-  return mc(x,24,140,52,`arr[${i}]`,`${v}`,i===0?AMB_F:BLU_F,i===0?AMB_T:BLU_T,i===0?AMB_E:BLU_E,addr);}).join('')}
-${ar(60,94,800,94,'#aaa')}
-${tx(420,110,'each +1 on int*  advances 4 bytes  (sizeof int = 4)')}
+  return mc(x,44,140,52,`arr[${i}]`,`${v}`,i===0?AMB_F:BLU_F,i===0?AMB_T:BLU_T,i===0?AMB_E:BLU_E,addr);}).join('')}
+${ar(60,131,800,131,'#aaa')}
+${tx(420,147,'each +1 on int*  advances 4 bytes  (sizeof int = 4)')}
 ${[[0,'p + 0','0x1000  →  10'],[1,'p + 1','0x1004  →  20  (+4)'],[2,'p + 2','0x1008  →  30  (+8)'],[3,'*(p+4)','0x1010  →  50  same as arr[4]']].map(([i,expr,res])=>
-  cd(20+i*202,122,198,18,expr)+tx(119+i*202,152,res,'middle','#555')).join('')}
-${band(20,165,800,20,GRN_F,GRN_E)}
-${tx(420,175,'arr[i]  ≡  *(arr+i)  ≡  *(p+i)  — the compiler generates identical code for all three','middle',GRN_T)}
-${cd(20,190,800,22,'char *cp = (char*)p;  cp+1 advances only 1 byte  (sizeof char = 1)')}
+  cd(20+i*202,160,198,18,expr)+tx(119+i*202,190,res,'middle','#555')).join('')}
+${band(20,203,800,20,GRN_F,GRN_E)}
+${tx(420,213,'arr[i]  ≡  *(arr+i)  ≡  *(p+i)  — the compiler generates identical code for all three','middle',GRN_T)}
+${cd(20,228,800,22,'char *cp = (char*)p;  cp+1 advances only 1 byte  (sizeof char = 1)')}
 </svg>`},
 
 // 9 ── NULL pointer ───────────────────────────────────────────────────────────
@@ -355,13 +355,13 @@ svg:`<svg width="100%" viewBox="0 0 840 262">${MK}
 ${tx(420,14,'Three mistakes account for nearly all pointer bugs — catch them with -fsanitize=address')}
 <rect x="22" y="28" width="258" height="178" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
 ${tx(151,44,'Trap 1: uninitialized pointer','middle',RED_T,12)}
-${mc(56,54,190,60,'p','0xDEAD??',RED_F,RED_T,RED_E)}
+${mc(56,54,190,60,'','0xDEAD??',RED_F,RED_T,RED_E)}
 ${tx(151,126,'reads/writes random location','middle','#c62828')}${tx(151,142,'undefined behavior','middle','#c62828')}
 ${cd(36,154,226,22,'int *p;  *p = 5; // UB')}
 ${cd(36,180,226,22,'Fix: int *p = NULL;')}
 <rect x="292" y="28" width="256" height="178" rx="8" fill="#fff8e0" stroke="#f0c060" stroke-width="1"/>
 ${tx(420,44,'Trap 2: use-after-free','middle','#8a6000',12)}
-${mc(316,54,206,60,'p','0x1004','#fff8e0','#a07010','#f0c060')}
+${mc(316,54,206,60,'','0x1004','#fff8e0','#a07010','#f0c060')}
 <rect x="352" y="124" width="140" height="38" rx="6" fill="none" stroke="#f0c060" stroke-width="1.5" stroke-dasharray="6 4"/>
 ${tx(422,143,'(freed block)','middle','#a07010')}
 ${ar(420,116,420,122,'#a07010')}
@@ -369,9 +369,9 @@ ${cd(298,168,234,20,'free(p); *p=5; // UB')}
 ${cd(298,190,234,20,'Fix: free(p); p=NULL;')}
 <rect x="562" y="28" width="256" height="178" rx="8" fill="${RED_F}" stroke="${RED_E}" stroke-width="1"/>
 ${tx(690,44,'Trap 3: out-of-bounds','middle',RED_T,12)}
-${[0,1,2].map(i=>mc(572+i*76,54,72,54,`[${i}]`,`${[10,20,30][i]}`,BLU_F,BLU_T,BLU_E)).join('')}
+${[0,1,2].map(i=>mc(572+i*76,54,72,54,'',`${[10,20,30][i]}`,BLU_F,BLU_T,BLU_E)).join('')}
 <rect x="800" y="54" width="12" height="54" rx="3" fill="${RED_F}" stroke="${RED_E}" stroke-width="1.5"/>
-${ar(684,81,796,81,RED_T)}
+${ar(684,101,796,101,RED_T)}
 ${tx(690,120,'int arr[3]; arr[3]=5;','middle','#c62828')}
 ${tx(690,136,'C never checks bounds!','middle','#c62828')}
 ${cd(568,168,234,20,'arr[3] = 5; // UB')}

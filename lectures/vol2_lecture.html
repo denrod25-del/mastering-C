@@ -139,7 +139,7 @@ const cd=(x,y,w,h,t)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5"
 const SLIDES=[
 {title:"The virtual address space",
  narration:"Every process believes it owns the entire memory map. On 64-bit Linux that is 128 terabytes — but your program uses only a few megabytes. The kernel lives in the top half, invisible from user space. Below it: the stack growing downward, shared libraries mapped in the middle, the heap growing upward, your globals, your compiled code, and at address zero the NULL zone the OS never maps. Touch unmapped space and you get a segmentation fault immediately.",
- svg:`<svg width="100%" viewBox="0 0 820 270">${MK}
+ svg:`<svg width="100%" viewBox="0 0 820 286">${MK}
 ${tx(410,14,'64-bit Linux: 128 TB virtual address space — most of it unmapped')}
 ${bx(220,22,220,34,'kernel space','#e8e0ff','#5533bb','#9977ee')}
 ${bx(220,59,220,40,'stack','#fff3e0','#b26a00','#f5b942')}
@@ -147,20 +147,20 @@ ${ar(374,66,374,93,'#c08000')}${tx(374,104,'↓ grows down','middle','#b26a00')}
 ${bx(220,106,220,22,'mmap / shared libs','#e8e8e8','#555','#bbb')}
 <rect x="220" y="131" width="220" height="14" fill="none" stroke="#ccc" stroke-width="0.5" stroke-dasharray="5 4"/>
 ${tx(330,142,'· · · unmapped · · ·','middle','#ccc')}
-${bx(220,148,220,38,'heap','#e6f4ee','#1a7a40','#4caf79')}
-${ar(374,182,374,156,'#1a7a40')}${tx(374,147,'↑ grows up','middle','#1a7a40')}
-${bx(220,189,220,20,'.data / .bss','#e0f4f4','#0d6a6a','#4db3b3')}
-${bx(220,212,220,20,'.text  (code)','#e0eeff','#1040a0','#5588ee')}
-<rect x="220" y="235" width="220" height="10" rx="2" fill="#ffe0e0" stroke="#e08888" stroke-width="0.8"/>
-${tx(330,240,'NULL — never mapped','middle','#c62828')}
-${tx(215,39,'0xFFFF…','end','#888')}${tx(215,142,'···','end','#bbb')}${tx(215,222,'0x0040…','end','#888')}${tx(215,240,'0x0000','end','#888')}
+${bx(220,164,220,38,'heap','#e6f4ee','#1a7a40','#4caf79')}
+${ar(374,198,374,172,'#1a7a40')}${tx(374,158,'↑ grows up','middle','#1a7a40')}
+${bx(220,205,220,20,'.data / .bss','#e0f4f4','#0d6a6a','#4db3b3')}
+${bx(220,228,220,20,'.text  (code)','#e0eeff','#1040a0','#5588ee')}
+<rect x="220" y="251" width="220" height="10" rx="2" fill="#ffe0e0" stroke="#e08888" stroke-width="0.8"/>
+${tx(330,256,'NULL — never mapped','middle','#c62828')}
+${tx(215,39,'0xFFFF…','end','#888')}${tx(215,142,'···','end','#bbb')}${tx(215,238,'0x0040…','end','#888')}${tx(215,256,'0x0000','end','#888')}
 ${tx(452,39,'kernel — never accessible from user code','start','#666')}
 ${tx(452,79,'grows down ↓ — default limit 8 MB','start','#666')}
 ${tx(452,117,'libc, libpthread, your .so files','start','#666')}
-${tx(452,167,'grows up ↑ — malloc works here','start','#666')}
-${tx(452,199,'initialized globals, BSS zeros','start','#666')}
-${tx(452,222,'your compiled functions','start','#666')}
-${tx(452,240,'dereference → SIGSEGV crash','start','#c62828')}
+${tx(452,183,'grows up ↑ — malloc works here','start','#666')}
+${tx(452,215,'initialized globals, BSS zeros','start','#666')}
+${tx(452,238,'your compiled functions','start','#666')}
+${tx(452,256,'dereference → SIGSEGV crash','start','#c62828')}
 </svg>`},
 
 {title:"Stack frames — how function calls build the stack",
